@@ -26,32 +26,41 @@ def parse_file(inp_file='Day_13/13_input.txt'):
     return relation_data
 
 
-def calculate_score(order, rel_dat):
+def calculate_score(first_guest, order, rel_dat):
+    '''Calculate forward score for an arrangement'''
     score = 0
     for per1, per2 in zip(order, order[1:]):
         score += rel_dat[per1][per2]
-    score += rel_dat[order[-1]][order[0]]
+    score += rel_dat[first_guest][order[0]]
+    score += rel_dat[order[-1]][first_guest]
     return score
 
 
-def calculate_score_helper(order, rel_dat):
-    score1 = calculate_score(order, rel_dat)
-    score2 = calculate_score(order[::-1], rel_dat)
+def calculate_score_helper(first_guest, order, rel_dat):
+    '''Calculate score forward and backward'''
+    score1 = calculate_score(first_guest, order, rel_dat)
+    score2 = calculate_score(first_guest, order[::-1], rel_dat)
     return score1 + score2
 
 
 def find_table_max_score(relation_data):
+    '''Go through each permutation and find max score'''
     # Find all guest names
-    guest_list = relation_data.keys()
+    guest_list = list(relation_data.keys())
+    # Remove one guest to reduce permutations
+    first_guest = guest_list.pop()
     max_val = 0
     for arrgnmt in itertools.permutations(guest_list):
-        arrgnmt_val = calculate_score_helper(arrgnmt, relation_data)
+        arrgnmt_val = calculate_score_helper(first_guest, 
+                                             arrgnmt, 
+                                             relation_data)
         if arrgnmt_val > max_val:
             max_val = arrgnmt_val
     return max_val
 
 
 def add_self(relation_data):
+    '''Add 'Me' to the guest list'''
     guest_list = relation_data.keys()
     relation_data.setdefault('Me', {})
 
@@ -64,13 +73,14 @@ def add_self(relation_data):
 
 def main():
     rel_dat = parse_file()
-    print(find_table_max_score(rel_dat))
+    print('Part 1:', find_table_max_score(rel_dat))
 
     new_rel_dat = add_self(rel_dat)
-    print(find_table_max_score(new_rel_dat))
+    print('Part 2:', find_table_max_score(new_rel_dat))
 
 
 def testcase():
+    '''Test Cases'''
     print('Running Tests...')
 
     test_string = 'David would lose 7 happiness units by sitting next to Bob.'
@@ -89,7 +99,9 @@ def testcase():
     print('Function: parse_file Pass')
     
     test_arrangement = ['David', 'Alice', 'Bob', 'Carol']
-    test_score = calculate_score_helper(test_arrangement, rel_test)
+    test_score = calculate_score_helper(test_arrangement[0], 
+                                        test_arrangement[1:],
+                                        rel_test)
     assert test_score == 330
     print('Function: calculate_score Pass')
 
